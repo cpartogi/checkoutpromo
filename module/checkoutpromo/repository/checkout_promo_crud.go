@@ -85,16 +85,13 @@ func AddStock(productID string, qty int) (err error) {
 }
 
 func DeleteCart(customerID string, productID string) (res *model.ResponseData, err error) {
-	stmt, err := db.Db.Prepare(`DELETE shopping_carts WHERE customer_id = ? AND product_id = ?`)
+	stmt, err := db.Db.Prepare(`DELETE FROM shopping_carts WHERE customer_id = ? AND product_id = ?`)
 
 	if err != nil {
 		return nil, err
 	}
 
-	u, _ := uuid.NewV4()
-	Id := u.String()
-
-	_, err = stmt.Exec(Id, customerID, productID)
+	_, err = stmt.Exec(customerID, productID)
 
 	if err != nil {
 		return nil, err

@@ -22,7 +22,13 @@ func (r *mutationResolver) AddCart(ctx context.Context, customerID string, produ
 }
 
 func (r *mutationResolver) DeleteCart(ctx context.Context, customerID string, productID string) (*model.ResponseData, error) {
-	panic(fmt.Errorf("not implemented"))
+	delCart, err := usecase.DeleteCart(customerID, productID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return delCart, nil
 }
 
 func (r *mutationResolver) Checkout(ctx context.Context, input model.Checkout) (*model.ResponseData, error) {
