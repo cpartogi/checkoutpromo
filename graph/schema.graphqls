@@ -54,17 +54,6 @@ type Query {
   orderDetail (order_num : String!) : [OrderDetail!]!
 }
 
-input AddCart {
-  customer_id : String!
-  product_id : String!
-  qty : Int!
-}
-
-input DeleteCart {
-  customer_id : String!
-  product_id : String!
-}
-
 input Checkout {
   customer_id : String!
 }
@@ -76,7 +65,7 @@ type ResponseData {
 }
 
 type Mutation {
-  addCart (input: AddCart!) : ResponseData!
-  deleteCart (input: DeleteCart! ) : ResponseData!
+  addCart (customer_id:String!, product_id:String!, qty:Int!) : ResponseData!
+  deleteCart (customer_id:String!, product_id:String!) : ResponseData!
   checkout (input: Checkout!) : ResponseData!
 }

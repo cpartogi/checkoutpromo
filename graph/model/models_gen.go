@@ -2,12 +2,6 @@
 
 package model
 
-type AddCart struct {
-	CustomerID string `json:"customer_id"`
-	ProductID  string `json:"product_id"`
-	Qty        int    `json:"qty"`
-}
-
 type Cart struct {
 	CartID      string  `json:"cart_id"`
 	CustomerID  string  `json:"customer_id"`
@@ -28,11 +22,6 @@ type Customer struct {
 	CustomerID    string `json:"customer_id"`
 	CustomerName  string `json:"customer_name"`
 	CustomerEmail string `json:"customer_email"`
-}
-
-type DeleteCart struct {
-	CustomerID string `json:"customer_id"`
-	ProductID  string `json:"product_id"`
 }
 
 type Order struct {

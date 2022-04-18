@@ -65,3 +65,104 @@ func OrderDetail(orderNum string) ([]*model.OrderDetail, error) {
 	}
 	return orderDetail, nil
 }
+
+func AddCart(customerID string, productID string, qty int) (res *model.ResponseData, err error) {
+
+	//parameter validation
+	if customerID == "" {
+		return nil, errors.New("customer id must be filled")
+	}
+
+	if productID == "" {
+		return nil, errors.New("product id must be filled")
+	}
+
+	if qty == 0 {
+		return nil, errors.New("qty must be more than 0")
+	}
+
+	// cek quantity on cart
+	cart_qty, err := repository.CheckCartStock(customerID, productID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var qty_update int
+	if cart_qty != 0 {
+		qty_update = qty + cart_qty
+	} else {
+		qty_update = qty
+	}
+
+	product_stock, err := repository.CheckStock(productID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var addCart *model.ResponseData
+	if qty < product_stock {
+
+		// update product stock quantity
+		err = repository.ReduceStock(productID, qty)
+		if err != nil {
+			return nil, err
+		}
+
+		if cart_qty != 0 {
+			// update shopping cart
+			addCart, err = repository.UpdateCart(customerID, productID, qty_update)
+
+			if err != nil {
+				return nil, err
+			}
+
+		} else {
+			// add to shopping cart
+			addCart, err = repository.AddCart(customerID, productID, qty)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		return nil, errors.New("product stock is not available")
+	}
+
+	return addCart, nil
+}
+
+func DeleteCart(customerID string, productID string) (res *model.ResponseData, err error) {
+	//parameter validation
+	if customerID == "" {
+		return nil, errors.New("customer id must be filled")
+	}
+
+	if productID == "" {
+		return nil, errors.New("product id must be filled")
+	}
+
+	// cek quantity on cart
+	cart_qty, err := repository.CheckCartStock(customerID, productID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// update product stock quantity
+	err = repository.AddStock(productID, cart_qty)
+	if err != nil {
+		return nil, err
+	}
+
+	// remove from shopping cart
+	delCart, err := repository.DeleteCart(customerID, productID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return delCart, nil
+
+}

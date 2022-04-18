@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/joho/godotenv v1.4.0
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
+	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/stretchr/testify v1.7.1 // indirect
 	github.com/vektah/gqlparser/v2 v2.4.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect

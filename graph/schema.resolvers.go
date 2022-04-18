@@ -11,11 +11,17 @@ import (
 	"fmt"
 )
 
-func (r *mutationResolver) AddCart(ctx context.Context, input model.AddCart) (*model.ResponseData, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) AddCart(ctx context.Context, customerID string, productID string, qty int) (*model.ResponseData, error) {
+	addCart, err := usecase.AddCart(customerID, productID, qty)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return addCart, nil
 }
 
-func (r *mutationResolver) DeleteCart(ctx context.Context, input model.DeleteCart) (*model.ResponseData, error) {
+func (r *mutationResolver) DeleteCart(ctx context.Context, customerID string, productID string) (*model.ResponseData, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -64,7 +70,6 @@ func (r *queryResolver) OrderByCustomer(ctx context.Context, customerID string) 
 }
 
 func (r *queryResolver) OrderDetail(ctx context.Context, orderNum string) ([]*model.OrderDetail, error) {
-
 	orderDetail, err := usecase.OrderDetail(orderNum)
 
 	if err != nil {
@@ -72,7 +77,6 @@ func (r *queryResolver) OrderDetail(ctx context.Context, orderNum string) ([]*mo
 	}
 
 	return orderDetail, nil
-
 }
 
 // Mutation returns generated.MutationResolver implementation.

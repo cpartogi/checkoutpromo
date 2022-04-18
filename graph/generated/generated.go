@@ -62,9 +62,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddCart    func(childComplexity int, input model.AddCart) int
+		AddCart    func(childComplexity int, customerID string, productID string, qty int) int
 		Checkout   func(childComplexity int, input model.Checkout) int
-		DeleteCart func(childComplexity int, input model.DeleteCart) int
+		DeleteCart func(childComplexity int, customerID string, productID string) int
 	}
 
 	Order struct {
@@ -107,8 +107,8 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	AddCart(ctx context.Context, input model.AddCart) (*model.ResponseData, error)
-	DeleteCart(ctx context.Context, input model.DeleteCart) (*model.ResponseData, error)
+	AddCart(ctx context.Context, customerID string, productID string, qty int) (*model.ResponseData, error)
+	DeleteCart(ctx context.Context, customerID string, productID string) (*model.ResponseData, error)
 	Checkout(ctx context.Context, input model.Checkout) (*model.ResponseData, error)
 }
 type QueryResolver interface {
@@ -228,7 +228,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddCart(childComplexity, args["input"].(model.AddCart)), true
+		return e.complexity.Mutation.AddCart(childComplexity, args["customer_id"].(string), args["product_id"].(string), args["qty"].(int)), true
 
 	case "Mutation.checkout":
 		if e.complexity.Mutation.Checkout == nil {
@@ -252,7 +252,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteCart(childComplexity, args["input"].(model.DeleteCart)), true
+		return e.complexity.Mutation.DeleteCart(childComplexity, args["customer_id"].(string), args["product_id"].(string)), true
 
 	case "Order.customer_id":
 		if e.complexity.Order.CustomerID == nil {
@@ -550,17 +550,6 @@ type Query {
   orderDetail (order_num : String!) : [OrderDetail!]!
 }
 
-input AddCart {
-  customer_id : String!
-  product_id : String!
-  qty : Int!
-}
-
-input DeleteCart {
-  customer_id : String!
-  product_id : String!
-}
-
 input Checkout {
   customer_id : String!
 }
@@ -572,8 +561,8 @@ type ResponseData {
 }
 
 type Mutation {
-  addCart (input: AddCart!) : ResponseData!
-  deleteCart (input: DeleteCart! ) : ResponseData!
+  addCart (customer_id:String!, product_id:String!, qty:Int!) : ResponseData!
+  deleteCart (customer_id:String!, product_id:String!) : ResponseData!
   checkout (input: Checkout!) : ResponseData!
 }
 `, BuiltIn: false},
@@ -587,15 +576,33 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_addCart_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.AddCart
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNAddCart2checkoutpromoᚋgraphᚋmodelᚐAddCart(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["customer_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customer_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["customer_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["product_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["product_id"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["qty"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qty"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["qty"] = arg2
 	return args, nil
 }
 
@@ -617,15 +624,24 @@ func (ec *executionContext) field_Mutation_checkout_args(ctx context.Context, ra
 func (ec *executionContext) field_Mutation_deleteCart_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.DeleteCart
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNDeleteCart2checkoutpromoᚋgraphᚋmodelᚐDeleteCart(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["customer_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customer_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["customer_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["product_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["product_id"] = arg1
 	return args, nil
 }
 
@@ -1172,7 +1188,7 @@ func (ec *executionContext) _Mutation_addCart(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddCart(rctx, args["input"].(model.AddCart))
+		return ec.resolvers.Mutation().AddCart(rctx, args["customer_id"].(string), args["product_id"].(string), args["qty"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1214,7 +1230,7 @@ func (ec *executionContext) _Mutation_deleteCart(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteCart(rctx, args["input"].(model.DeleteCart))
+		return ec.resolvers.Mutation().DeleteCart(rctx, args["customer_id"].(string), args["product_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3356,45 +3372,6 @@ func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field gr
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputAddCart(ctx context.Context, obj interface{}) (model.AddCart, error) {
-	var it model.AddCart
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "customer_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customer_id"))
-			it.CustomerID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "product_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_id"))
-			it.ProductID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "qty":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qty"))
-			it.Qty, err = ec.unmarshalNInt2int(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputCheckout(ctx context.Context, obj interface{}) (model.Checkout, error) {
 	var it model.Checkout
 	asMap := map[string]interface{}{}
@@ -3409,37 +3386,6 @@ func (ec *executionContext) unmarshalInputCheckout(ctx context.Context, obj inte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customer_id"))
 			it.CustomerID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputDeleteCart(ctx context.Context, obj interface{}) (model.DeleteCart, error) {
-	var it model.DeleteCart
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "customer_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customer_id"))
-			it.CustomerID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "product_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("product_id"))
-			it.ProductID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4525,11 +4471,6 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAddCart2checkoutpromoᚋgraphᚋmodelᚐAddCart(ctx context.Context, v interface{}) (model.AddCart, error) {
-	res, err := ec.unmarshalInputAddCart(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4656,11 +4597,6 @@ func (ec *executionContext) marshalNCustomer2ᚖcheckoutpromoᚋgraphᚋmodelᚐ
 		return graphql.Null
 	}
 	return ec._Customer(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNDeleteCart2checkoutpromoᚋgraphᚋmodelᚐDeleteCart(ctx context.Context, v interface{}) (model.DeleteCart, error) {
-	res, err := ec.unmarshalInputDeleteCart(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {

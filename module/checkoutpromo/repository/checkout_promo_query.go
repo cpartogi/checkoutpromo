@@ -136,8 +136,8 @@ func OrderList(customerId string) ([]*model.Order, error) {
 }
 
 func OrderDetail(orderNum string) ([]*model.OrderDetail, error) {
-	stmt, err := db.Db.Prepare(`select o.order_id,o.order_num, o.customer_id , o.product_id , p.product_sku , p.product_name , p.product_price , o.qty , o.total_price  from orders o 
-	left join products p on p.product_id = o.product_id where o.order_num = ?`)
+	stmt, err := db.Db.Prepare(`SELECT o.order_id,o.order_num, o.customer_id , o.product_id , p.product_sku , p.product_name , p.product_price , o.qty , o.total_price  FROM orders o 
+	LEFT JOIN products p on p.product_id = o.product_id where o.order_num = ?`)
 
 	if err != nil {
 		return nil, err
@@ -166,4 +166,52 @@ func OrderDetail(orderNum string) ([]*model.OrderDetail, error) {
 	defer rows.Close()
 
 	return orderDetail, err
+}
+
+func CheckStock(productID string) (qty int, err error) {
+	stmt, err := db.Db.Prepare(`SELECT product_qty FROM products WHERE product_id= ?`)
+
+	if err != nil {
+		return 0, err
+	}
+
+	row, err := stmt.Query(productID)
+
+	if row.Next() {
+		err = row.Scan(&qty)
+
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	return qty, err
+}
+
+func CheckCartStock(customerID, productID string) (qty int, err error) {
+	stmt, err := db.Db.Prepare(`SELECT qty FROM shopping_carts WHERE customer_id= ? AND product_id = ?`)
+
+	if err != nil {
+		return 0, err
+	}
+
+	row, err := stmt.Query(customerID, productID)
+
+	if row.Next() {
+		err = row.Scan(&qty)
+
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	return qty, err
 }
