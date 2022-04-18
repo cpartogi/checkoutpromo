@@ -8,7 +8,6 @@ import (
 	"checkoutpromo/graph/model"
 	"checkoutpromo/module/checkoutpromo/usecase"
 	"context"
-	"fmt"
 )
 
 func (r *mutationResolver) AddCart(ctx context.Context, customerID string, productID string, qty int) (*model.ResponseData, error) {
@@ -31,8 +30,14 @@ func (r *mutationResolver) DeleteCart(ctx context.Context, customerID string, pr
 	return delCart, nil
 }
 
-func (r *mutationResolver) Checkout(ctx context.Context, input model.Checkout) (*model.ResponseData, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) Checkout(ctx context.Context, customerID string) (*model.ResponseData, error) {
+	checkout, err := usecase.Checkout(customerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return checkout, nil
 }
 
 func (r *queryResolver) ProductList(ctx context.Context) ([]*model.Product, error) {

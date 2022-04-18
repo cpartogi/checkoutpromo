@@ -54,11 +54,6 @@ type Query {
   orderDetail (order_num : String!) : [OrderDetail!]!
 }
 
-input Checkout {
-  customer_id : String!
-}
-
-
 type ResponseData {
   status_code : Int!
   message : String!
@@ -67,5 +62,5 @@ type ResponseData {
 type Mutation {
   addCart (customer_id:String!, product_id:String!, qty:Int!) : ResponseData!
   deleteCart (customer_id:String!, product_id:String!) : ResponseData!
-  checkout (input: Checkout!) : ResponseData!
+  checkout (customer_id:String!) : ResponseData!
 }

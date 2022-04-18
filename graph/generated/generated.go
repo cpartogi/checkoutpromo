@@ -63,7 +63,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddCart    func(childComplexity int, customerID string, productID string, qty int) int
-		Checkout   func(childComplexity int, input model.Checkout) int
+		Checkout   func(childComplexity int, customerID string) int
 		DeleteCart func(childComplexity int, customerID string, productID string) int
 	}
 
@@ -109,7 +109,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	AddCart(ctx context.Context, customerID string, productID string, qty int) (*model.ResponseData, error)
 	DeleteCart(ctx context.Context, customerID string, productID string) (*model.ResponseData, error)
-	Checkout(ctx context.Context, input model.Checkout) (*model.ResponseData, error)
+	Checkout(ctx context.Context, customerID string) (*model.ResponseData, error)
 }
 type QueryResolver interface {
 	ProductList(ctx context.Context) ([]*model.Product, error)
@@ -240,7 +240,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.Checkout(childComplexity, args["input"].(model.Checkout)), true
+		return e.complexity.Mutation.Checkout(childComplexity, args["customer_id"].(string)), true
 
 	case "Mutation.deleteCart":
 		if e.complexity.Mutation.DeleteCart == nil {
@@ -550,11 +550,6 @@ type Query {
   orderDetail (order_num : String!) : [OrderDetail!]!
 }
 
-input Checkout {
-  customer_id : String!
-}
-
-
 type ResponseData {
   status_code : Int!
   message : String!
@@ -563,7 +558,7 @@ type ResponseData {
 type Mutation {
   addCart (customer_id:String!, product_id:String!, qty:Int!) : ResponseData!
   deleteCart (customer_id:String!, product_id:String!) : ResponseData!
-  checkout (input: Checkout!) : ResponseData!
+  checkout (customer_id:String!) : ResponseData!
 }
 `, BuiltIn: false},
 }
@@ -609,15 +604,15 @@ func (ec *executionContext) field_Mutation_addCart_args(ctx context.Context, raw
 func (ec *executionContext) field_Mutation_checkout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.Checkout
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCheckout2checkoutpromoᚋgraphᚋmodelᚐCheckout(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["customer_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customer_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["customer_id"] = arg0
 	return args, nil
 }
 
@@ -1272,7 +1267,7 @@ func (ec *executionContext) _Mutation_checkout(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().Checkout(rctx, args["input"].(model.Checkout))
+		return ec.resolvers.Mutation().Checkout(rctx, args["customer_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3372,29 +3367,6 @@ func (ec *executionContext) ___Type_specifiedByURL(ctx context.Context, field gr
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputCheckout(ctx context.Context, obj interface{}) (model.Checkout, error) {
-	var it model.Checkout
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "customer_id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("customer_id"))
-			it.CustomerID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4538,11 +4510,6 @@ func (ec *executionContext) marshalNCart2ᚖcheckoutpromoᚋgraphᚋmodelᚐCart
 		return graphql.Null
 	}
 	return ec._Cart(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNCheckout2checkoutpromoᚋgraphᚋmodelᚐCheckout(ctx context.Context, v interface{}) (model.Checkout, error) {
-	res, err := ec.unmarshalInputCheckout(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNCustomer2ᚕᚖcheckoutpromoᚋgraphᚋmodelᚐCustomerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Customer) graphql.Marshaler {

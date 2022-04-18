@@ -14,10 +14,6 @@ type Cart struct {
 	CreatedAt   string  `json:"created_at"`
 }
 
-type Checkout struct {
-	CustomerID string `json:"customer_id"`
-}
-
 type Customer struct {
 	CustomerID    string `json:"customer_id"`
 	CustomerName  string `json:"customer_name"`
