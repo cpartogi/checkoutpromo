@@ -169,15 +169,32 @@ func Checkout(customerId string) (orderNumber string, err error) {
 		}
 
 		if bonusProductID != "" {
-			ubonus, _ := uuid.NewV4()
-			Idbonus := ubonus.String()
-
-			stmtbonus, err := db.Db.Prepare(`INSERT INTO orders (order_id, order_num, customer_id, product_id, unit_price, qty, total_price, created_at) values (?,?,?,?,?,?,?,now())`)
-
-			_, err = stmtbonus.Exec(Idbonus, orderNum, orders.CustomerID, bonusProductID, 0, 1, 0)
+			// check stock
+			qtystock, err := CheckStock(bonusProductID)
 
 			if err != nil {
-				return orderNumber, err
+				return orderNum, err
+			}
+
+			if qtystock > 1 {
+
+				//reduce stock
+				err := ReduceStock(bonusProductID, 1)
+
+				if err != nil {
+					return orderNum, err
+				}
+
+				ubonus, _ := uuid.NewV4()
+				Idbonus := ubonus.String()
+
+				stmtbonus, err := db.Db.Prepare(`INSERT INTO orders (order_id, order_num, customer_id, product_id, unit_price, qty, total_price, created_at) values (?,?,?,?,?,?,?,now())`)
+
+				_, err = stmtbonus.Exec(Idbonus, orderNum, orders.CustomerID, bonusProductID, 0, 1, 0)
+
+				if err != nil {
+					return orderNumber, err
+				}
 			}
 
 		}
