@@ -167,17 +167,17 @@ func DeleteCart(customerID string, productID string) (res *model.ResponseData, e
 
 }
 
-func Checkout(customerID string) (res *model.ResponseData, err error) {
+func Checkout(customerID string) (orderNumber string, err error) {
 	//parameter validation
 	if customerID == "" {
-		return nil, errors.New("customer id must be filled")
+		return orderNumber, errors.New("customer id must be filled")
 	}
 
-	checkout, err := repository.Checkout(customerID)
+	orderNum, err := repository.Checkout(customerID)
 
 	if err != nil {
-		return nil, err
+		return orderNumber, err
 	}
 
-	return checkout, nil
+	return orderNum, nil
 }

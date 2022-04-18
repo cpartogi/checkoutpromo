@@ -107,18 +107,18 @@ func DeleteCart(customerID string, productID string) (res *model.ResponseData, e
 	return hasil, err
 }
 
-func Checkout(customerId string) (res *model.ResponseData, err error) {
+func Checkout(customerId string) (orderNumber string, err error) {
 	stmt, err := db.Db.Prepare(`SELECT sc.customer_id , sc.product_id , p.product_price , sc.qty, p.product_price*sc.qty as total_price FROM shopping_carts sc 
 	LEFT JOIN products p on p.product_id = sc.product_id where sc.customer_id = ?`)
 
 	if err != nil {
-		return nil, err
+		return orderNumber, err
 	}
 
 	rows, err := stmt.Query(customerId)
 
 	if err != nil {
-		return nil, err
+		return orderNumber, err
 	}
 
 	// generate order num
@@ -140,12 +140,54 @@ func Checkout(customerId string) (res *model.ResponseData, err error) {
 		u, _ := uuid.NewV4()
 		Id := u.String()
 
+		// cek promo
+		stmtp, err := db.Db.Prepare(`SELECT coalesce(price, NULL, 0), coalesce(bonus_product_id, NULL, '')  FROM promo_rules WHERE product_id = ? AND  min_qty >= ?`)
+
+		if err != nil {
+			return orderNumber, err
+		}
+
+		row, err := stmtp.Query(orders.ProductID, orders.Quantity)
+
+		if err != nil {
+			return orderNumber, err
+		}
+
+		var discountPrice float64
+		var bonusProductID string
+
+		if row.Next() {
+			err = row.Scan(&discountPrice, &bonusProductID)
+			if err != nil {
+				return orderNumber, err
+			}
+		}
+
+		if discountPrice != 0 {
+			orders.UnitPrice = discountPrice
+			orders.TotalPrice = discountPrice * float64(orders.Quantity)
+		}
+
+		if bonusProductID != "" {
+			ubonus, _ := uuid.NewV4()
+			Idbonus := ubonus.String()
+
+			stmtbonus, err := db.Db.Prepare(`INSERT INTO orders (order_id, order_num, customer_id, product_id, unit_price, qty, total_price, created_at) values (?,?,?,?,?,?,?,now())`)
+
+			_, err = stmtbonus.Exec(Idbonus, orderNum, orders.CustomerID, bonusProductID, 0, 1, 0)
+
+			if err != nil {
+				return orderNumber, err
+			}
+
+		}
+
 		stmtb, err := db.Db.Prepare(`INSERT INTO orders (order_id, order_num, customer_id, product_id, unit_price, qty, total_price, created_at) values (?,?,?,?,?,?,?,now())`)
 
 		_, err = stmtb.Exec(Id, orderNum, orders.CustomerID, orders.ProductID, orders.UnitPrice, orders.Quantity, orders.TotalPrice)
 
 		if err != nil {
-			return nil, err
+			return orderNumber, err
 		}
 
 	}
@@ -154,18 +196,14 @@ func Checkout(customerId string) (res *model.ResponseData, err error) {
 	stmtc, err := db.Db.Prepare(`DELETE FROM shopping_carts WHERE customer_id = ? `)
 
 	if err != nil {
-		return nil, err
+		return orderNumber, err
 	}
 
 	_, err = stmtc.Exec(customerId)
 
 	if err != nil {
-		return nil, err
+		return orderNumber, err
 	}
 
-	hasil := &model.ResponseData{
-		StatusCode: 200,
-		Message:    "success checkout order number : " + orderNum,
-	}
-	return hasil, err
+	return orderNum, err
 }

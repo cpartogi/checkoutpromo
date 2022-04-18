@@ -31,13 +31,18 @@ func (r *mutationResolver) DeleteCart(ctx context.Context, customerID string, pr
 }
 
 func (r *mutationResolver) Checkout(ctx context.Context, customerID string) (*model.ResponseData, error) {
-	checkout, err := usecase.Checkout(customerID)
+	orderNum, err := usecase.Checkout(customerID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return checkout, nil
+	hasil := &model.ResponseData{
+		StatusCode: 200,
+		Message:    "success checkout, order number : " + orderNum,
+	}
+
+	return hasil, nil
 }
 
 func (r *queryResolver) ProductList(ctx context.Context) ([]*model.Product, error) {
